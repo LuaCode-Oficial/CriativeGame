@@ -101,9 +101,9 @@
             <div class="titulo-menu">Menu</div>
         </div>
         <ul>
-            <li><a href="#" onclick="mostrarSecao('inicio')"><i class="fas fa-home"></i> Início</a></li>
-            <li><a href="#" onclick="mostrarSecao('atualizacoes')"><i class="fas fa-calendar-alt"></i> Atualizações</a></li>
-            <li><a href="#" onclick="mostrarSecao('proximas')"><i class="fas fa-arrow-up"></i> Próximas</a></li>
+            <li><a href="#" onclick="mostrarSecao('inicio', true)"><i class="fas fa-home"></i> Início</a></li>
+            <li><a href="#" onclick="mostrarSecao('atualizacoes', true)"><i class="fas fa-calendar-alt"></i> Atualizações</a></li>
+            <li><a href="#" onclick="mostrarSecao('proximas', true)"><i class="fas fa-arrow-up"></i> Próximas</a></li>
         </ul>
     </div>
 
@@ -209,10 +209,6 @@ ___    `
 # nada para ver aqui.            
                 `
             }
-            
-            
-            
-            // Para adicionar mais, basta copiar um bloco { ... } acima e colocar uma vírgula antes.
         ];
 
         // ==========================================
@@ -365,20 +361,44 @@ ___    `
             renderizarReacoes();
         }
 
+        // --- ATUALIZADO: ABRIR MÍDIA E CRIAR ID NA URL ---
         function abrirMidia(tipo, url, id) {
             const content = document.getElementById('lightbox-content');
             content.innerHTML = tipo === 'img' ? `<img src="${url}" style="max-width:90vw; max-height:90vh;">` : `<video src="${url}" controls autoplay style="max-width:90vw; max-height:90vh;"></video>`;
             document.getElementById('media-lightbox').classList.add('ativa');
+            
+            // Cria o ID na URL para permitir abrir direto depois
+            const novaUrl = window.location.pathname + '?media=' + id;
+            history.pushState({media: id}, '', novaUrl);
         }
 
+        // --- ATUALIZADO: FECHAR MÍDIA E LIMPAR URL ---
         function fecharMidia() {
             document.getElementById('media-lightbox').classList.remove('ativa');
             document.getElementById('lightbox-content').innerHTML = '';
+            
+            // Remove o ID da URL ao fechar
+            history.pushState(null, '', window.location.pathname);
         }
 
-        function compartilharMidia() {
-            navigator.clipboard.writeText(window.location.href);
-            alert("Link copiado!");
+        // --- ATUALIZADO: COMPARTILHAR DE VERDADE COM BANNER/URL NATIVA ---
+        async function compartilharMidia() {
+            const linkAtual = window.location.href; // Já captura o ID caso esteja com a mídia aberta
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'CriativeGames',
+                        text: 'Confira esta atualização incrível no CriativeGames!',
+                        url: linkAtual
+                    });
+                } catch (err) {
+                    console.log('Compartilhamento cancelado ou falhou', err);
+                }
+            } else {
+                // Fallback se o navegador/PC for muito antigo
+                navigator.clipboard.writeText(linkAtual);
+                alert("Link copiado para a área de transferência!");
+            }
         }
 
         const menuLateral = document.getElementById("menu-lateral");
@@ -388,16 +408,79 @@ ___    `
         document.getElementById("fechar-menu").onclick = toggleMenu;
         overlay.onclick = toggleMenu;
 
-        function mostrarSecao(id) {
+        // --- ATUALIZADO: MOSTRAR SEÇÃO E ALTERAR URL PARA /home, /updates, etc ---
+        function mostrarSecao(id, updateHistory = false) {
             document.querySelectorAll('.secao').forEach(s => s.classList.remove('ativa'));
             document.getElementById(id).classList.add('ativa');
             if(menuLateral.classList.contains('ativa')) toggleMenu();
+
+            if (updateHistory) {
+                let novaRota = '/CriativeGame/home';
+                if (id === 'atualizacoes') novaRota = '/CriativeGame/updates';
+                if (id === 'proximas') novaRota = '/CriativeGame/upcoming-updates';
+                
+                // Atualiza a URL sem recarregar a página
+                history.pushState(null, '', novaRota);
+            }
         }
+
+        // --- ATUALIZADO: SISTEMA DE NOTIFICAÇÃO REAL E VERIFICAÇÃO DE ROTA/MÍDIA ---
+        function checarNotificacoes() {
+            if ("Notification" in window) {
+                Notification.requestPermission();
+                
+                let postsSalvos = localStorage.getItem('total_posts_criativegames');
+                let postsAtuais = MEUS_POSTS.length;
+
+                // Se houver mais posts do que o salvo anteriormente, envia a notificação real
+                if (postsSalvos && postsAtuais > parseInt(postsSalvos)) {
+                    if (Notification.permission === "granted") {
+                        new Notification("Nova Atualização em CriativeGames! 🎮", {
+                            body: "Acabamos de postar uma novidade. Venha conferir as atualizações!",
+                            icon: "https://cdn-icons-png.flaticon.com/512/13/13374.png"
+                        });
+                    }
+                }
+                // Salva a quantidade nova
+                localStorage.setItem('total_posts_criativegames', postsAtuais);
+            }
+        }
+
+        function gerenciarCarregamentoInicial() {
+            const urlPath = window.location.pathname;
+            const urlParams = new URLSearchParams(window.location.search);
+            const mediaId = urlParams.get('media');
+
+            // Verifica qual URL o usuário acessou para abrir a aba certa
+            if (urlPath.includes('/updates')) {
+                mostrarSecao('atualizacoes', false);
+            } else if (urlPath.includes('/upcoming-updates')) {
+                mostrarSecao('proximas', false);
+            } else {
+                mostrarSecao('inicio', false); // Fallback e /home
+            }
+
+            // Se tiver o ID de imagem/vídeo, força o click para abrir em tela cheia logo de cara
+            if (mediaId) {
+                setTimeout(() => {
+                    const el = document.getElementById(mediaId);
+                    if (el) {
+                        if (el.tagName === 'IMG') { el.click(); }
+                        else if (el.classList.contains('video-container')) { el.querySelector('video').click(); }
+                    }
+                }, 800); // Aguarda a página e as imagens renderizarem
+            }
+        }
+
+        // Listeners de voltar/avançar no navegador para consertar a URL e abas
+        window.addEventListener('popstate', gerenciarCarregamentoInicial);
 
         // INICIALIZAÇÃO
         window.onload = () => {
-            gerarPostsAutomaticos(); // Cria os posts a partir da lista no topo do script
-            renderizarConteudo();    // Formata o Markdown e gera reações
+            gerarPostsAutomaticos(); 
+            renderizarConteudo();    
+            checarNotificacoes(); // Inicia as Notificações Reais do Google
+            gerenciarCarregamentoInicial(); // Verifica Rotas e IDs de Mídia
         };
     </script>
 </body>
