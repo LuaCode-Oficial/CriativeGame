@@ -101,30 +101,30 @@
             <div class="titulo-menu">Menu</div>
         </div>
         <ul>
-            <li><a href="#" onclick="mostrarSecao('inicio')"><i class="fas fa-home"></i> InÌcio</a></li>
-            <li><a href="#" onclick="mostrarSecao('atualizacoes')"><i class="fas fa-calendar-alt"></i> AtualizaÁıes</a></li>
-            <li><a href="#" onclick="mostrarSecao('proximas')"><i class="fas fa-arrow-up"></i> PrÛximas</a></li>
+            <li><a href="#" onclick="mostrarSecao('inicio')"><i class="fas fa-home"></i> In√≠cio</a></li>
+            <li><a href="#" onclick="mostrarSecao('atualizacoes')"><i class="fas fa-calendar-alt"></i> Atualiza√ß√µes</a></li>
+            <li><a href="#" onclick="mostrarSecao('proximas')"><i class="fas fa-arrow-up"></i> Pr√≥ximas</a></li>
         </ul>
     </div>
 
     <div id="inicio" class="secao ativa">
         <div class="post-card" data-markdown data-post-id="boas_vindas_2024">
 #  Bem-vindo a CriativeGames!
-Este È o portal oficial. Sinta-se em casa!
+Este √© o portal oficial. Sinta-se em casa!
         </div>
     </div>
 
     <div id="atualizacoes" class="secao">
         <div class="post-card" data-markdown data-post-id="v1_0_lancada">
-# AtualizaÁ„o v1.0 disponÌvel!
-Confira as novidades no vÌdeo:
+# Atualiza√ß√£o v1.0 dispon√≠vel!
+Confira as novidades no v√≠deo:
 https://www.youtube.com/watch?v=dQw4w9WgXcQ
         </div>
     </div>
 
     <div id="proximas" class="secao">
         <div class="post-card" data-markdown data-post-id="novidade_chat">
-#  PrÛximas Novidades
+#  Pr√≥ximas Novidades
 Em breve teremos um sistema de chat!
         </div>
     </div>
@@ -153,7 +153,7 @@ Em breve teremos um sistema de chat!
                 let cleanUrl = url.replace(/[.,;!?]$/, '');
                 let lowerUrl = cleanUrl.toLowerCase();
                 
-                // Imagens e VÌdeos Diretos
+                // Imagens e V√≠deos Diretos
                 if (lowerUrl.match(/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/)) {
                     mediaCounter++;
                     let mid = 'media-' + mediaCounter;
@@ -175,7 +175,7 @@ Em breve teremos um sistema de chat!
                     </div>`;
                 }
 
-                // Links GenÈricos
+                // Links Gen√©ricos
                 let tempId = "link-" + Math.random().toString(36).substr(2, 9);
                 carregarMetadados(cleanUrl, tempId);
                 return `<div id="${tempId}" class="embed-container"><div class="embed-provider">Carregando link...</div><a href="${cleanUrl}" target="_blank" class="embed-title">${cleanUrl}</a></div>`;
@@ -194,7 +194,7 @@ Em breve teremos um sistema de chat!
             `;
         }
 
-        // VALIDA«√O DE EMOJI (S” ACEITA 1 EMOJI)
+        // VALIDA√á√ÉO DE EMOJI (S√ì ACEITA 1 EMOJI)
         function validarApenasUmEmoji(str) {
             const emojiRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])$/u;
             return emojiRegex.test(str);
@@ -235,7 +235,7 @@ Em breve teremos um sistema de chat!
         }
 
         async function cliqueReacao(postId, tipo) {
-            // Garantir que o usu·rio sÛ tenha UMA reaÁ„o por post (limpa as outras antes)
+            // Garantir que o usu√°rio s√≥ tenha UMA rea√ß√£o por post (limpa as outras antes)
             const { data: todasMinhas } = await _supabase.from('reacoes_site').select('id, tipo_reacao').eq('post_id', postId).eq('usuario_id', _meuId);
             let jaTinhaEssa = false;
             for(let r of todasMinhas) {
@@ -256,7 +256,7 @@ Em breve teremos um sistema de chat!
                 if(validarApenasUmEmoji(limpo)) {
                     cliqueReacao(postId, limpo);
                 } else {
-                    alert("Proibido digitar letras, n˙meros ou v·rios emojis. Digite apenas 1 emoji!");
+                    alert("Proibido digitar letras, n√∫meros ou v√°rios emojis. Digite apenas 1 emoji!");
                 }
             }
         }
