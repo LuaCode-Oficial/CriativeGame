@@ -107,29 +107,68 @@
         </ul>
     </div>
 
-    <div id="inicio" class="secao ativa">
-        <div class="post-card" data-markdown data-post-id="boas_vindas_2024">
-#  Bem-vindo a CriativeGames!
-Este é o portal oficial. Sinta-se em casa!
-        </div>
-    </div>
-
-    <div id="atualizacoes" class="secao">
-        <div class="post-card" data-markdown data-post-id="v1_0_lancada">
-# Atualização v1.0 disponível!
-Confira as novidades no vídeo:
-https://www.youtube.com/watch?v=dQw4w9WgXcQ
-        </div>
-    </div>
-
-    <div id="proximas" class="secao">
-        <div class="post-card" data-markdown data-post-id="novidade_chat">
-#  Próximas Novidades
-Em breve teremos um sistema de chat!
-        </div>
-    </div>
-
+    <div id="inicio" class="secao ativa"></div>
+    <div id="atualizacoes" class="secao"></div>
+    <div id="proximas" class="secao"></div>
+    
     <script>
+        // ==========================================
+        // SISTEMA DE MENSAGENS / POSTS (MEXA AQUI)
+        // ==========================================
+        
+        const MEUS_POSTS = [
+        
+            {
+                secao: "inicio",
+                id: "boas_vindas_v2",
+                texto: `
+# 🎮 Bem-vindo a CriativeGames!
+
+**O seu portal oficial para todas as novidades, bastidores e atualizações exclusivas do nosso universo gamer.**
+
+Aqui você não apenas joga, você acompanha a **evolução** de perto. Se você busca precisão nas datas e quer ver as artes originais antes de todo mundo, você está no lugar certo!
+
+
+---
+
+### 🔥 O que você encontra por aqui?
+
+* **📅 Cronograma Oficial:** Datas confirmadas de lançamentos e manutenções.
+* **📸 Galeria de Imagens:** Teasers, renders de personagens e novos mapas.
+* **🛠️ Changelogs:** Lista detalhada de tudo o que mudou em cada versão.
+* **🚀 Futuro do Jogo:** Spoiler das mecânicas que estamos desenvolvendo.
+---
+
+### 📢 Avisos Importantes
+
+**Não esqueça de conferir o menu de [Atualizações] para ver o que acabou de sair do forno!**
+
+---
+_Prepare seu equipamento e divirta-se!_`
+            },
+            {
+                secao: "atualizacoes",
+                id: "patch_notes_v1",
+                texto: `
+# nada para ver aqui `
+            },
+            {
+                secao: "proximas",
+                id: "lista_futuro",
+                texto: `                                                   
+# nada para ver aqui.            
+                `
+            }
+            
+            
+            
+            // Para adicionar mais, basta copiar um bloco { ... } acima e colocar uma vírgula antes.
+        ];
+
+        // ==========================================
+        // FIM DO SISTEMA DE MENSAGENS
+        // ==========================================
+
         const _supabaseUrl = 'https://qrfkpqjddqbcdiodluxw.supabase.co';
         const _supabaseKey = 'sb_publishable_RqMFch3gFFtDsHuvKsXHUA_eZdlT5k8';
         const _supabase = window.supabase.createClient(_supabaseUrl, _supabaseKey);
@@ -138,6 +177,21 @@ Em breve teremos um sistema de chat!
         localStorage.setItem('user_uid', _meuId);
 
         let mediaCounter = 0;
+
+        // Função para gerar os cards automaticamente a partir da lista MEUS_POSTS
+        function gerarPostsAutomaticos() {
+            MEUS_POSTS.forEach(post => {
+                const container = document.getElementById(post.secao);
+                if (container) {
+                    const card = document.createElement('div');
+                    card.className = 'post-card';
+                    card.setAttribute('data-markdown', '');
+                    card.setAttribute('data-post-id', post.id);
+                    card.innerHTML = post.texto;
+                    container.appendChild(card);
+                }
+            });
+        }
 
         async function obterDadosLink(url) {
             try {
@@ -153,7 +207,6 @@ Em breve teremos um sistema de chat!
                 let cleanUrl = url.replace(/[.,;!?]$/, '');
                 let lowerUrl = cleanUrl.toLowerCase();
                 
-                // Imagens e Vídeos Diretos
                 if (lowerUrl.match(/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/)) {
                     mediaCounter++;
                     let mid = 'media-' + mediaCounter;
@@ -165,7 +218,6 @@ Em breve teremos um sistema de chat!
                     return `<div class="video-container" id="${mid}"><video onclick="abrirMidia('video', '${cleanUrl}', '${mid}')"><source src="${cleanUrl}"></video><div class="play-overlay"><i class="fas fa-play-circle"></i></div></div>`;
                 }
 
-                // YOUTUBE RESTAURADO
                 if (lowerUrl.includes("youtube.com") || lowerUrl.includes("youtu.be")) {
                     let videoId = lowerUrl.includes("v=") ? cleanUrl.split('v=')[1].split('&')[0] : cleanUrl.split('/').pop();
                     return `<div class="embed-container">
@@ -175,7 +227,6 @@ Em breve teremos um sistema de chat!
                     </div>`;
                 }
 
-                // Links Genéricos
                 let tempId = "link-" + Math.random().toString(36).substr(2, 9);
                 carregarMetadados(cleanUrl, tempId);
                 return `<div id="${tempId}" class="embed-container"><div class="embed-provider">Carregando link...</div><a href="${cleanUrl}" target="_blank" class="embed-title">${cleanUrl}</a></div>`;
@@ -194,7 +245,6 @@ Em breve teremos um sistema de chat!
             `;
         }
 
-        // VALIDAÇÃO DE EMOJI (SÓ ACEITA 1 EMOJI)
         function validarApenasUmEmoji(str) {
             const emojiRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])$/u;
             return emojiRegex.test(str);
@@ -205,21 +255,18 @@ Em breve teremos um sistema de chat!
             for (let p of posts) {
                 const postId = p.getAttribute('data-post-id');
                 if(!postId) continue;
-
                 let bar = p.querySelector('.area-reacoes');
                 if(!bar) {
                     bar = document.createElement('div');
                     bar.className = 'area-reacoes';
                     p.appendChild(bar);
                 }
-
                 const { data } = await _supabase.from('reacoes_site').select('tipo_reacao, usuario_id').eq('post_id', postId);
                 const contagem = {}; const euReagi = {};
                 data?.forEach(r => {
                     contagem[r.tipo_reacao] = (contagem[r.tipo_reacao] || 0) + 1;
                     if(r.usuario_id === _meuId) euReagi[r.tipo_reacao] = true;
                 });
-
                 let html = `
                     <button class="btn-acao ${euReagi['like'] ? 'ativo-azul' : ''}" onclick="cliqueReacao('${postId}', 'like')"><i class="fas fa-thumbs-up"></i> <span>${contagem['like'] || 0}</span></button>
                     <button class="btn-acao ${euReagi['dislike'] ? 'ativo' : ''}" onclick="cliqueReacao('${postId}', 'dislike')"><i class="fas fa-thumbs-down"></i> <span>${contagem['dislike'] || 0}</span></button>
@@ -235,7 +282,6 @@ Em breve teremos um sistema de chat!
         }
 
         async function cliqueReacao(postId, tipo) {
-            // Garantir que o usuário só tenha UMA reação por post (limpa as outras antes)
             const { data: todasMinhas } = await _supabase.from('reacoes_site').select('id, tipo_reacao').eq('post_id', postId).eq('usuario_id', _meuId);
             let jaTinhaEssa = false;
             for(let r of todasMinhas) {
@@ -251,14 +297,8 @@ Em breve teremos um sistema de chat!
 
         function addCustom(postId) {
             let emoji = prompt("Digite APENAS UM emoji:");
-            if(emoji) {
-                let limpo = emoji.trim();
-                if(validarApenasUmEmoji(limpo)) {
-                    cliqueReacao(postId, limpo);
-                } else {
-                    alert("Proibido digitar letras, números ou vários emojis. Digite apenas 1 emoji!");
-                }
-            }
+            if(emoji && validarApenasUmEmoji(emoji.trim())) cliqueReacao(postId, emoji.trim());
+            else if(emoji) alert("Apenas 1 emoji permitido!");
         }
 
         function showToast() {
@@ -304,7 +344,11 @@ Em breve teremos um sistema de chat!
             if(menuLateral.classList.contains('ativa')) toggleMenu();
         }
 
-        window.onload = renderizarConteudo;
+        // INICIALIZAÇÃO
+        window.onload = () => {
+            gerarPostsAutomaticos(); // Cria os posts a partir da lista no topo do script
+            renderizarConteudo();    // Formata o Markdown e gera reações
+        };
     </script>
 </body>
 </html>
